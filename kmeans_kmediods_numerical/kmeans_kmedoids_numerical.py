@@ -1,6 +1,7 @@
 import streamlit as st
-import plotly.graph_objects as go
+import plotly.express as px
 import numpy as np
+import pandas as pd
 from sklearn.metrics import pairwise_distances
 
 data_points = np.array([2, 3, 4, 10, 11, 12, 20, 25, 30])
@@ -76,12 +77,16 @@ def kmedoids_clustering(m1, m2):
     return result
 
 def plot_clusters(clusters, centroids):
-    fig = go.Figure()
-    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52']
+    data = []
     for i, points in clusters.items():
-        fig.add_trace(go.Scatter(x=points, y=[0] * len(points), mode='markers', marker=dict(color=colors[i]), name=f'Cluster {i+1}'))
-    for i, centroid in enumerate(centroids):
-        fig.add_trace(go.Scatter(x=[centroid], y=[0], mode='markers', marker=dict(color=colors[i], size=10, symbol='star'), name=f'Centroid {i+1}'))
+        data.extend([(point, i+1) for point in points])
+    df = pd.DataFrame(data, columns=['Data Points', 'Cluster'])
+    fig = px.scatter(df, x='Data Points', y=[0] * len(df), color='Cluster', symbol='Cluster',
+                     symbol_map={i+1: 'circle' for i in range(len(centroids))},
+                     color_discrete_sequence=px.colors.qualitative.Plotly)
+    fig.add_trace(px.scatter(x=centroids, y=[0] * len(centroids), color=[i+1 for i in range(len(centroids))],
+                             symbol=[i+1 for i in range(len(centroids))], symbol_map={i+1: 'star' for i in range(len(centroids))},
+                             color_discrete_sequence=px.colors.qualitative.Plotly).data[0])
     fig.update_layout(title='Clustering', xaxis_title='Data Points', yaxis_title='', showlegend=False)
     return fig
 
