@@ -2,5 +2,7 @@ streamlit
 numpy
 pandas
 scikit-learn
+scikit-learn-extra
 plotly-express
 plotly
+
