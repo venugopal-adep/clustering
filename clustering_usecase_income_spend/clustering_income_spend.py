@@ -8,7 +8,7 @@ import plotly.express as px
 # Load and preprocess the customer data
 @st.cache_data
 def load_data():
-    data = pd.read_csv("customer_data.csv")
+    data = pd.read_csv("https://github.com/venugopal-adep/clustering/blob/c5d98c71281e4cb1a80dec05f96b353aad5b31e7/clustering_usecase_income_spend/customer_data.csv")
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data[["Annual Income", "Spending Score"]])
     return data, scaled_data
