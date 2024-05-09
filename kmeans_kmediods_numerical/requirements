@@ -1,7 +1,4 @@
 streamlit
-numpy
-pandas
-scikit-learn
-scikit-learn-extra
 plotly
-plotly-graph-objects
+numpy
+scikit-learn
