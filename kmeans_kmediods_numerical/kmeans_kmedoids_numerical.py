@@ -36,24 +36,6 @@ def kmeans_clustering(m1, m2):
         result += "---\n"  # Separator for steps
     return result
 
-def calculate_new_medoids(data_points, medoids):
-    clusters = {i: [] for i in range(len(medoids))}
-    for point in data_points:
-        point_2d = point.reshape(1, -1)  # Reshape point to 2D array
-        distances = pairwise_distances(point_2d, medoids.reshape(len(medoids), -1)).flatten()
-        closest_medoid_index = np.argmin(distances)
-        clusters[closest_medoid_index].append(point)
-    new_medoids = []
-    for points in clusters.values():
-        if points:
-            points_2d = np.array(points).reshape(len(points), -1)  # Reshape points to 2D array
-            distances = pairwise_distances(points_2d)
-            medoid_index = np.argmin(distances.sum(axis=1))
-            new_medoids.append(points[medoid_index])
-        else:
-            new_medoids.append(None)
-    return np.array(new_medoids), clusters
-
 def kmedoids_clustering(m1, m2):
     initial_medoids = np.array([m1, m2])
     medoids = initial_medoids
@@ -87,10 +69,13 @@ def plot_clusters(clusters, centroids):
 
 def main():
     st.title('Clustering Demo')
-    algorithm = st.selectbox('Select Algorithm', ['K-Means', 'K-Medoids'])
-    m1 = st.number_input('Centroid/Medoid 1', value=5)
-    m2 = st.number_input('Centroid/Medoid 2', value=15)
-    if st.button('Run Clustering'):
+    with st.sidebar:
+        algorithm = st.selectbox('Select Algorithm', ['K-Means', 'K-Medoids'])
+        m1 = st.number_input('Centroid/Medoid 1', value=5)
+        m2 = st.number_input('Centroid/Medoid 2', value=15)
+        run_clustering = st.button('Run Clustering')
+
+    if run_clustering:
         if algorithm == 'K-Means':
             result = kmeans_clustering(m1, m2)
         else:
