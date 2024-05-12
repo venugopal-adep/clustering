@@ -3,6 +3,9 @@ import numpy as np
 from sklearn.decomposition import PCA
 from PIL import Image
 
+st.write("## Image compression using PCA")
+st.write("**Developed by : Venugopal Adep**")
+
 # Add a file uploader to allow image uploads
 uploaded_file = st.file_uploader("Choose an image...", type=['jpg', 'jpeg', 'png'])
 
