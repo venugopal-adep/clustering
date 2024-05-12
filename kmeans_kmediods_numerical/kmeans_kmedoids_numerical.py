@@ -68,7 +68,8 @@ def plot_clusters(clusters, centroids):
     return fig
 
 def main():
-    st.title('Clustering Demo')
+    st.write('## KMeans KMedoids - Numerical')
+    st.write('**Developed by : Venugopal Adep**')
     with st.sidebar:
         algorithm = st.selectbox('Select Algorithm', ['K-Means', 'K-Medoids'])
         m1 = st.number_input('Centroid/Medoid 1', value=5)
