@@ -24,7 +24,8 @@ def plot_clusters(data, labels):
     return fig
 
 def main():
-    st.title('Cluster Analysis with Spectral Clustering and Gaussian Mixture Models')
+    st.write('## Spectral Clustering and Gaussian Mixture Models')
+    st.write('**Developed by : Venugopal Adep**')
     
     data = load_data()
     features = st.multiselect('Select features to cluster', options=data.columns[:-1].tolist(), default=data.columns[:4].tolist())
