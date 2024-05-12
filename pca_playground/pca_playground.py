@@ -60,7 +60,8 @@ def plot_image_grid(X, y):
 
 def main():
     st.set_page_config(page_title='PCA Explorer', layout='wide')
-    st.title('PCA Explorer 🔍')
+    st.write('## PCA Explorer 🔍')
+    st.write("**Developed by : Venugopal Adep**")
     st.write('Explore the wonders of Principal Component Analysis (PCA) with interactive visualizations!')
     
     dataset_name = st.sidebar.selectbox('Select a dataset', ['Iris', 'Wine', 'Breast Cancer', 'Digits'])
