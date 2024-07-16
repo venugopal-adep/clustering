@@ -3,3 +3,4 @@ plotly
 streamlit
 scikit-learn
 scikit-learn-extra
+matplotlib
