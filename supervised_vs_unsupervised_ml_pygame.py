@@ -1,161 +1,213 @@
-import pygame
-import random
+import streamlit as st
 import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import plotly.express as px
 
-# Initialize Pygame
-pygame.init()
+# Set page config
+st.set_page_config(layout="wide", page_title="ML Learning Explorer", page_icon="🤖")
 
-# Set up the display
-WIDTH, HEIGHT = 1600, 800
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Supervised vs Unsupervised ML Demo")
+# Custom CSS
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 42px !important;
+        font-weight: bold;
+        color: #1E90FF;
+        text-align: center;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px #cccccc;
+    }
+    .sub-header {
+        font-size: 32px !important;
+        font-weight: bold;
+        color: #4682B4;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .text-content {
+        font-size: 18px !important;
+        line-height: 1.6;
+    }
+    .highlight {
+        background-color: #F0F8FF;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+        font-size: 16px;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+        transform: scale(1.05);
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-YELLOW = (255, 255, 0)
-COLORS = [RED, GREEN, BLUE, YELLOW]
+# Title
+st.markdown("<h1 class='main-header'>🤖 Machine Learning Explorer: Supervised vs Unsupervised 🤖</h1>", unsafe_allow_html=True)
 
-# Fonts
-title_font = pygame.font.Font(None, 48)
-text_font = pygame.font.Font(None, 24)
+# Sidebar
+st.sidebar.markdown("<h2 class='sub-header'>Controls</h2>", unsafe_allow_html=True)
+num_points = st.sidebar.slider("Number of data points", 50, 500, 200)
+noise_level = st.sidebar.slider("Noise level", 0.0, 1.0, 0.1)
 
-# Data points
-num_points = 100
-data_points = []
+# Generate data
+@st.cache_data
+def generate_data(num_points, noise):
+    X, y = make_classification(n_samples=num_points, n_features=2, n_informative=2,
+                               n_redundant=0, n_clusters_per_class=1, flip_y=noise,
+                               random_state=42)
+    return X, y
 
-# ML models
-kmeans = KMeans(n_clusters=3)
-logistic_reg = LogisticRegression()
+X, y = generate_data(num_points, noise_level)
 
-# Buttons
-supervised_button = pygame.Rect(WIDTH // 4 - 100, HEIGHT - 100, 200, 50)
-unsupervised_button = pygame.Rect(3 * WIDTH // 4 - 100, HEIGHT - 100, 200, 50)
-reset_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT - 100, 200, 50)
+# Create tabs
+tab1, tab2, tab3 = st.tabs(["🔍 Data Exploration", "🧠 Machine Learning Models", "📊 Model Comparison"])
 
-# States
-current_mode = None
-clusters = []
-decision_boundary = None
-
-def generate_data():
-    global data_points
-    data_points = []
-    for _ in range(num_points):
-        x = random.randint(50, WIDTH - 50)
-        y = random.randint(50, HEIGHT - 150)
-        label = random.randint(0, 1)
-        data_points.append((x, y, label))
-
-def draw_data_points():
-    for point in data_points:
-        x, y, label = point
-        color = RED if label == 0 else BLUE
-        pygame.draw.circle(screen, color, (x, y), 5)
-
-def perform_clustering():
-    global clusters
-    X = np.array([(p[0], p[1]) for p in data_points])
-    kmeans.fit(X)
-    clusters = kmeans.labels_
-
-def draw_clusters():
-    for i, point in enumerate(data_points):
-        x, y, _ = point
-        color = COLORS[clusters[i] % len(COLORS)]
-        pygame.draw.circle(screen, color, (x, y), 5)
-
-def perform_classification():
-    global decision_boundary
-    X = np.array([(p[0], p[1]) for p in data_points])
-    y = np.array([p[2] for p in data_points])
-    logistic_reg.fit(X, y)
+with tab1:
+    st.markdown("<h2 class='sub-header'>Data Exploration</h2>", unsafe_allow_html=True)
     
-    xx, yy = np.meshgrid(np.arange(0, WIDTH, 10), np.arange(0, HEIGHT, 10))
-    Z = logistic_reg.predict(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-    decision_boundary = (xx, yy, Z)
-
-def draw_decision_boundary():
-    if decision_boundary:
-        xx, yy, Z = decision_boundary
-        for i in range(len(xx)):
-            for j in range(len(yy)):
-                if 0 <= xx[i][j] < WIDTH and 0 <= yy[i][j] < HEIGHT:
-                    color = RED if Z[i][j] == 0 else BLUE
-                    pygame.draw.circle(screen, color, (int(xx[i][j]), int(yy[i][j])), 2)
-
-generate_data()
-
-running = True
-clock = pygame.time.Clock()
-
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if supervised_button.collidepoint(event.pos):
-                current_mode = "supervised"
-                perform_classification()
-            elif unsupervised_button.collidepoint(event.pos):
-                current_mode = "unsupervised"
-                perform_clustering()
-            elif reset_button.collidepoint(event.pos):
-                current_mode = None
-                generate_data()
-                clusters = []
-                decision_boundary = None
-
-    screen.fill(WHITE)
-
-    # Draw title and developer info
-    title_text = title_font.render("Supervised vs Unsupervised ML Demo", True, BLACK)
-    screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 20))
-
-    developer_text = text_font.render("Developed by: Venugopal Adep", True, BLACK)
-    screen.blit(developer_text, (WIDTH // 2 - developer_text.get_width() // 2, 70))
-
-    # Draw data points or results
-    if current_mode == "supervised":
-        draw_decision_boundary()
-        draw_data_points()
-    elif current_mode == "unsupervised":
-        draw_clusters()
-    else:
-        draw_data_points()
-
-    # Draw buttons
-    pygame.draw.rect(screen, GREEN, supervised_button)
-    supervised_text = text_font.render("Supervised Learning", True, BLACK)
-    screen.blit(supervised_text, (supervised_button.x + 10, supervised_button.y + 15))
-
-    pygame.draw.rect(screen, BLUE, unsupervised_button)
-    unsupervised_text = text_font.render("Unsupervised Learning", True, BLACK)
-    screen.blit(unsupervised_text, (unsupervised_button.x + 10, unsupervised_button.y + 15))
-
-    pygame.draw.rect(screen, YELLOW, reset_button)
-    reset_text = text_font.render("Reset Data", True, BLACK)
-    screen.blit(reset_text, (reset_button.x + 50, reset_button.y + 15))
-
-    # Draw explanations
-    if current_mode == "supervised":
-        explanation = "Supervised Learning: Classifying data points based on labeled examples."
-    elif current_mode == "unsupervised":
-        explanation = "Unsupervised Learning: Clustering data points without prior labels."
-    else:
-        explanation = "Click a button to see Supervised or Unsupervised Learning in action!"
+    col1, col2 = st.columns([1, 1])
     
-    explanation_text = text_font.render(explanation, True, BLACK)
-    screen.blit(explanation_text, (WIDTH // 2 - explanation_text.get_width() // 2, HEIGHT - 150))
+    with col1:
+        st.markdown("<p class='text-content'>Let's explore our generated dataset!</p>", unsafe_allow_html=True)
+        
+        df = pd.DataFrame(X, columns=['Feature 1', 'Feature 2'])
+        df['Label'] = y
+        st.dataframe(df.head())
+        
+        st.markdown("<div class='highlight'>", unsafe_allow_html=True)
+        st.write(f"Total data points: {num_points}")
+        st.write(f"Number of features: 2")
+        st.write(f"Number of classes: 2")
+        st.write(f"Class balance: {sum(y)/len(y):.2f}")
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    with col2:
+        fig = px.scatter(df, x='Feature 1', y='Feature 2', color='Label', title="Data Distribution")
+        st.plotly_chart(fig)
 
-    # Update display
-    pygame.display.flip()
-    clock.tick(30)
+with tab2:
+    st.markdown("<h2 class='sub-header'>Machine Learning Models</h2>", unsafe_allow_html=True)
+    
+    model_type = st.radio("Select Learning Type", ["Supervised (Logistic Regression)", "Unsupervised (K-Means Clustering)"])
+    
+    if model_type == "Supervised (Logistic Regression)":
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        model = LogisticRegression()
+        model.fit(X_train, y_train)
+        
+        y_pred = model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        
+        st.markdown("<div class='highlight'>", unsafe_allow_html=True)
+        st.write(f"Model: Logistic Regression")
+        st.write(f"Accuracy: {accuracy:.2f}")
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Visualize decision boundary
+        xx, yy = np.meshgrid(np.linspace(X[:, 0].min()-1, X[:, 0].max()+1, 100),
+                             np.linspace(X[:, 1].min()-1, X[:, 1].max()+1, 100))
+        Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
+        
+        fig = go.Figure(data=[
+            go.Contour(x=xx[0], y=yy[:, 0], z=Z, colorscale='RdBu', opacity=0.5, showscale=False),
+            go.Scatter(x=X_test[:, 0], y=X_test[:, 1], mode='markers',
+                       marker=dict(color=y_test, colorscale='RdBu', size=10))
+        ])
+        fig.update_layout(title="Logistic Regression Decision Boundary")
+        st.plotly_chart(fig)
+        
+    else:
+        kmeans = KMeans(n_clusters=2, random_state=42)
+        cluster_labels = kmeans.fit_predict(X)
+        
+        st.markdown("<div class='highlight'>", unsafe_allow_html=True)
+        st.write(f"Model: K-Means Clustering")
+        st.write(f"Number of clusters: 2")
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        fig = px.scatter(x=X[:, 0], y=X[:, 1], color=cluster_labels,
+                         title="K-Means Clustering Results")
+        fig.add_trace(go.Scatter(x=kmeans.cluster_centers_[:, 0], y=kmeans.cluster_centers_[:, 1],
+                                 mode='markers', marker=dict(color='black', size=15, symbol='x')))
+        st.plotly_chart(fig)
 
-pygame.quit()
+with tab3:
+    st.markdown("<h2 class='sub-header'>Model Comparison</h2>", unsafe_allow_html=True)
+    
+    st.markdown("<p class='text-content'>Let's compare Supervised and Unsupervised learning approaches on our dataset.</p>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("<h3>Supervised Learning (Logistic Regression)</h3>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class='highlight'>
+        <p><strong>Pros:</strong></p>
+        <ul>
+            <li>Can make precise predictions</li>
+            <li>Provides clear decision boundaries</li>
+            <li>Offers interpretable results</li>
+        </ul>
+        <p><strong>Cons:</strong></p>
+        <ul>
+            <li>Requires labeled data</li>
+            <li>May overfit if not properly regularized</li>
+            <li>Assumes linear decision boundary</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("<h3>Unsupervised Learning (K-Means Clustering)</h3>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class='highlight'>
+        <p><strong>Pros:</strong></p>
+        <ul>
+            <li>Doesn't require labeled data</li>
+            <li>Can discover hidden patterns</li>
+            <li>Useful for exploratory data analysis</li>
+        </ul>
+        <p><strong>Cons:</strong></p>
+        <ul>
+            <li>Results may be less interpretable</li>
+            <li>Sensitive to initial conditions</li>
+            <li>Requires specifying number of clusters</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<p class='text-content'>The choice between supervised and unsupervised learning depends on your data, problem, and goals. Supervised learning is great when you have labeled data and want to make specific predictions. Unsupervised learning is useful for exploring data structure and finding patterns without predefined labels.</p>", unsafe_allow_html=True)
+
+# Conclusion
+st.markdown("<h2 class='sub-header'>Conclusion</h2>", unsafe_allow_html=True)
+st.markdown("""
+<p class='text-content'>
+This interactive demo showcases the fundamental differences between supervised and unsupervised machine learning approaches:
+
+1. Supervised learning (Logistic Regression) uses labeled data to learn a decision boundary for classification.
+2. Unsupervised learning (K-Means Clustering) finds patterns in data without using labels.
+3. Both methods have their strengths and are suited for different types of problems.
+4. The choice of method depends on your data, problem context, and specific goals.
+
+Experiment with different numbers of data points and noise levels to see how they affect each model's performance!
+</p>
+""", unsafe_allow_html=True)
+
+st.markdown("<p class='text-content' style='text-align: center; font-style: italic;'>Developed by: Venugopal Adep</p>", unsafe_allow_html=True)
