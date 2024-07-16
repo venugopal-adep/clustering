@@ -173,24 +173,43 @@ with tab2:
             model_pca = LogisticRegression()
             model_pca.fit(X_pca, y)
             
-            xx, yy, zz = np.meshgrid(np.linspace(X_pca[:, 0].min(), X_pca[:, 0].max(), 20),
-                                     np.linspace(X_pca[:, 1].min(), X_pca[:, 1].max(), 20),
-                                     np.linspace(X_pca[:, 2].min(), X_pca[:, 2].max(), 20))
-            Z = model_pca.predict(np.c_[xx.ravel(), yy.ravel(), zz.ravel()])
-            Z = Z.reshape(xx.shape)
+            # Create a mesh grid
+            x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
+            y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
+            z_min, z_max = X_pca[:, 2].min() - 1, X_pca[:, 2].max() + 1
+            xx, yy = np.meshgrid(np.linspace(x_min, x_max, 50),
+                                np.linspace(y_min, y_max, 50))
             
-            fig = go.Figure(data=[
-                go.Scatter3d(x=X_pca[:, 0], y=X_pca[:, 1], z=X_pca[:, 2], mode='markers',
-                             marker=dict(color=y, colorscale='viridis', size=5)),
-                go.Volume(x=xx.flatten(), y=yy.flatten(), z=zz.flatten(), value=Z.flatten(),
-                          isomin=0.5, isomax=0.5, opacity=0.1, surface_count=2,
-                          colorscale='RdBu')
-            ])
+            # Calculate the decision boundary
+            zz = (-model_pca.intercept_[0] - model_pca.coef_[0][0] * xx - model_pca.coef_[0][1] * yy) / model_pca.coef_[0][2]
+            
+            # Create the 3D plot
+            fig = go.Figure()
+
+            # Add the decision boundary surface
+            fig.add_trace(go.Surface(x=xx, y=yy, z=zz, opacity=0.5, 
+                                    colorscale=[[0, 'rgb(255,0,0)'], [1, 'rgb(0,0,255)']],
+                                    name='Decision Boundary'))
+
+            # Add the data points
+            fig.add_trace(go.Scatter3d(x=X_pca[:, 0], y=X_pca[:, 1], z=X_pca[:, 2],
+                                    mode='markers',
+                                    marker=dict(size=5,
+                                                color=y,
+                                                colorscale='viridis',
+                                                opacity=0.8),
+                                    name='Data Points'))
+
+            # Update the layout
             fig.update_layout(title="3D Logistic Regression Decision Boundary",
-                              scene=dict(xaxis_title='PC1', yaxis_title='PC2', zaxis_title='PC3'),
-                              width=800, height=600)
-        
+                            scene=dict(xaxis_title='PC1',
+                                        yaxis_title='PC2',
+                                        zaxis_title='PC3',
+                                        aspectmode='cube'),
+                            width=900, height=700)
+
         st.plotly_chart(fig, use_container_width=True)
+
         
     else:
         kmeans = KMeans(n_clusters=n_clusters, random_state=42)
