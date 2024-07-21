@@ -77,9 +77,9 @@ def prepare_data(data):
 
 # Train model
 @st.cache_resource
-def train_model(X_train_features, y_train):
+def train_model(_X_train_features, y_train):
     clf = MultinomialNB()
-    clf.fit(X_train_features, y_train)
+    clf.fit(_X_train_features, y_train)
     return clf
 
 # Plot wordcloud
