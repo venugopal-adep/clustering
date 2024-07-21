@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 # Set page config
 st.set_page_config(layout="wide", page_title="Email Spam Prediction", page_icon="📧")
 
-# Custom CSS
+# Custom CSS (same as before)
 st.markdown("""
 <style>
     .main-header {
@@ -53,6 +53,20 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Sample emails
+sample_emails = [
+    ("Get rich quick! Invest now and double your money in just 24 hours!", 1),
+    ("Hey, how's it going? Want to grab lunch tomorrow?", 0),
+    ("URGENT: Your account has been suspended. Click here to reactivate.", 1),
+    ("Reminder: Team meeting at 3 PM in the conference room.", 0),
+    ("Congratulations! You've won a free iPhone. Claim now!", 1),
+    ("Can you pick up some milk on your way home?", 0),
+    ("Hot singles in your area are waiting to meet you!", 1),
+    ("Your Amazon order #12345 has been shipped.", 0),
+    ("Lose 20 pounds in 1 week with this miracle pill!", 1),
+    ("Don't forget to submit your report by Friday.", 0)
+]
 
 # Load and preprocess data
 @st.cache_data
@@ -123,9 +137,10 @@ def main():
             email_input = st.text_area("Enter an email message")
         
         with col2:
-            sample_emails = X_test.sample(n=5, random_state=42).tolist()
-            sample_emails_with_labels = [(email, label) for email, label in zip(sample_emails, y_test[X_test.isin(sample_emails)])]
-            selected_email = st.selectbox("Or select a sample email", [""] + [f"{email} ({'Spam' if label == 1 else 'Not Spam'})" for email, label in sample_emails_with_labels])
+            selected_email = st.selectbox(
+                "Or select a sample email",
+                [""] + [f"{email} ({'Spam' if label == 1 else 'Not Spam'})" for email, label in sample_emails]
+            )
         
         if st.button("Predict"):
             if email_input:
