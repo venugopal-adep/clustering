@@ -9,7 +9,6 @@ from sklearn.mixture import GaussianMixture
 from sklearn_extra.cluster import KMedoids
 from sklearn.metrics import silhouette_score
 
-
 def main():
     st.title('Clustering and PCA Visualization')
     st.subheader('Interactive exploration of clustering and dimensionality reduction')
@@ -30,6 +29,8 @@ def main():
             st.write(data)
 
         numeric_columns = data.select_dtypes(include=['float64', 'int64']).columns.tolist()
+
+        labels = None  # Initialize labels variable
 
         if show_clustering:
             st.subheader('Clustering')
@@ -74,7 +75,6 @@ def main():
                                            color='Cluster', title='3D Clustering Result', color_continuous_scale='Viridis')
                     st.plotly_chart(fig_3d, use_container_width=True)
 
-
                 cluster_counts = data['Cluster'].value_counts().reset_index()
                 cluster_counts.columns = ['Cluster', 'Count']
                 fig_counts = px.bar(cluster_counts, x='Cluster', y='Count', title='Cluster Sizes', color='Cluster',
@@ -97,14 +97,19 @@ def main():
                 pca_result = pca.fit_transform(X_scaled)
 
                 pca_data = pd.DataFrame(data=pca_result, columns=[f'PC{i+1}' for i in range(n_components)])
-                pca_data['Cluster'] = labels
+                
+                if labels is not None:
+                    pca_data['Cluster'] = labels
+                    color = 'Cluster'
+                else:
+                    color = None
 
                 if n_components == 2:
-                    fig_pca = px.scatter(pca_data, x='PC1', y='PC2', color='Cluster', title='PCA 2D Visualization', 
+                    fig_pca = px.scatter(pca_data, x='PC1', y='PC2', color=color, title='PCA 2D Visualization', 
                                          color_continuous_scale='Viridis')
                     st.plotly_chart(fig_pca, use_container_width=True)
                 else:
-                    fig_pca_3d = px.scatter_3d(pca_data, x='PC1', y='PC2', z='PC3', color='Cluster', 
+                    fig_pca_3d = px.scatter_3d(pca_data, x='PC1', y='PC2', z='PC3', color=color, 
                                                title='PCA 3D Visualization', color_continuous_scale='Viridis')
                     st.plotly_chart(fig_pca_3d, use_container_width=True)
 
