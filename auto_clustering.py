@@ -6,7 +6,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans, SpectralClustering, DBSCAN
 from sklearn.mixture import GaussianMixture
-from sklearn_extra.cluster import KMedoids
 from sklearn.metrics import silhouette_score
 
 def main():
@@ -38,7 +37,7 @@ def main():
             n_clusters = st.slider("Select number of clusters", min_value=2, max_value=10, value=3)
             
             clustering_algorithm = st.selectbox("Select clustering algorithm", 
-                                                ["KMeans", "KMedoids", "SpectralClustering", "GaussianMixture", "DBSCAN"])
+                                                ["KMeans", "SpectralClustering", "GaussianMixture", "DBSCAN"])
             
             if len(selected_columns) < 2:
                 st.warning("Please select at least 2 columns for clustering.")
@@ -49,8 +48,6 @@ def main():
 
                 if clustering_algorithm == "KMeans":
                     clusterer = KMeans(n_clusters=n_clusters, random_state=42)
-                elif clustering_algorithm == "KMedoids":
-                    clusterer = KMedoids(n_clusters=n_clusters, random_state=42)
                 elif clustering_algorithm == "SpectralClustering":
                     clusterer = SpectralClustering(n_clusters=n_clusters, random_state=42)
                 elif clustering_algorithm == "GaussianMixture":
