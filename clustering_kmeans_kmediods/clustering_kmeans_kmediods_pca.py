@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from sklearn import datasets
 from sklearn.cluster import KMeans
-from sklearn_extra.cluster import KMedoids
 from sklearn.decomposition import PCA
 import plotly.express as px
 import plotly.graph_objects as go
@@ -10,7 +9,7 @@ import plotly.graph_objects as go
 # Set page config
 st.set_page_config(layout="wide", page_title="Iris Clustering Explorer", page_icon="🌸")
 
-# Custom CSS (same as before)
+# Custom CSS
 st.markdown("""
 <style>
     .main-header {
@@ -105,10 +104,10 @@ def plot_clusters(data, labels):
 
     return fig
 
-# Main app (same as before)
+# Main app
 def main():
-    st.markdown("<h1 class='main-header'>🌸 Iris Clustering Explorer: K-Means vs K-Medoids</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='text-content'>Explore clustering algorithms on the Iris dataset</p>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>🌸 Iris Clustering Explorer: K-Means Clustering</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='text-content'>Explore K-Means clustering on the Iris dataset</p>", unsafe_allow_html=True)
 
     # Create tabs
     tab1, tab2, tab3 = st.tabs(["📚 Learn", "🧮 Explore", "🧠 Quiz"])
@@ -133,20 +132,15 @@ def main():
         
         st.markdown("""
         <div class='highlight'>
-        <h3>Clustering Algorithms</h3>
+        <h3>K-Means Clustering Algorithm</h3>
         <p class='text-content'>
-        We'll use two clustering algorithms:
-        
-        1. K-Means: Groups data points by calculating the mean of each cluster and reassigning points to the nearest mean.
-        2. K-Medoids: Similar to K-Means, but uses actual data points as cluster centers instead of calculated means.
-        
-        Both algorithms aim to group similar iris flowers together based on their measurements.
+        K-Means is a popular clustering algorithm that groups data points by calculating the mean of each cluster and reassigning points to the nearest mean. It aims to partition n observations into k clusters in which each observation belongs to the cluster with the nearest mean (cluster centroid).
         </p>
         </div>
         """, unsafe_allow_html=True)
 
     with tab2:
-        st.markdown("<h2 class='sub-header'>Explore Clustering on Iris Dataset</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 class='sub-header'>Explore K-Means Clustering on Iris Dataset</h2>", unsafe_allow_html=True)
         
         col1, col2 = st.columns([1, 2])
         
@@ -156,14 +150,8 @@ def main():
             
             n_clusters = st.slider('Select number of clusters', min_value=2, max_value=10, value=3, step=1)
             
-            method = st.selectbox('Select clustering method', options=['K-means', 'K-medoids'])
-            
             if st.button('Run Clustering'):
-                if method == 'K-means':
-                    model = KMeans(n_clusters=n_clusters)
-                elif method == 'K-medoids':
-                    model = KMedoids(n_clusters=n_clusters, random_state=0)
-                
+                model = KMeans(n_clusters=n_clusters)
                 labels = model.fit_predict(data[features])
                 st.session_state.labels = labels
                 st.session_state.features = features
@@ -184,15 +172,15 @@ def main():
                 "explanation": "The Iris dataset has 4 features: sepal length, sepal width, petal length, and petal width."
             },
             {
-                "question": "What's the main difference between K-Means and K-Medoids?",
+                "question": "What does the K in K-Means represent?",
                 "options": [
-                    "K-Means uses the mean as the center, while K-Medoids uses an actual data point",
-                    "K-Means is faster, while K-Medoids is more accurate",
-                    "K-Means works with categorical data, while K-Medoids doesn't",
-                    "There's no difference, they're the same algorithm"
+                    "The number of iterations",
+                    "The number of clusters",
+                    "The number of features",
+                    "The number of data points"
                 ],
-                "correct": 0,
-                "explanation": "K-Means uses the average (mean) of points in a cluster as its center, which might not be an actual data point. K-Medoids always uses an actual data point as the center."
+                "correct": 1,
+                "explanation": "In K-Means clustering, K represents the number of clusters that the algorithm will attempt to find in the data."
             },
             {
                 "question": "Why do we use PCA before plotting the clusters?",
