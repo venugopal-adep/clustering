@@ -1,9 +1,8 @@
 import streamlit as st
 import numpy as np
 from sklearn.datasets import make_blobs, make_circles, make_moons, load_iris, make_s_curve
-from sklearn.cluster import KMeans, SpectralClustering, DBSCAN, AgglomerativeClustering, OPTICS, MeanShift, AffinityPropagation, Birch
+from sklearn.cluster import KMeans, SpectralClustering, DBSCAN, AgglomerativeClustering, OPTICS, MeanShift, AffinityPropagation, Birch, MiniBatchKMeans
 from sklearn.manifold import TSNE
-from sklearn_extra.cluster import KMedoids
 from sklearn.mixture import GaussianMixture
 import plotly.graph_objects as go
 
@@ -70,7 +69,7 @@ def generate_data(dataset):
 def perform_clustering(X, method, n_clusters):
     models = {
         'K-Means': KMeans(n_clusters=n_clusters, random_state=42),
-        'K-Medoids': KMedoids(n_clusters=n_clusters, random_state=42),
+        'Mini-Batch K-Means': MiniBatchKMeans(n_clusters=n_clusters, random_state=42),
         'Spectral Clustering': SpectralClustering(n_clusters=n_clusters, random_state=42),
         'Gaussian Mixture': GaussianMixture(n_components=n_clusters, random_state=42),
         'DBSCAN': DBSCAN(eps=0.5, min_samples=5),
@@ -124,7 +123,7 @@ def main():
         Clustering is an unsupervised learning technique that groups similar data points together. This explorer demonstrates various clustering algorithms on different datasets:
 
         1. K-Means: Partitions data into K clusters, each represented by its centroid.
-        2. K-Medoids: Similar to K-Means, but uses actual data points as cluster centers.
+        2. Mini-Batch K-Means: A variant of K-Means that uses mini-batches to reduce computation time.
         3. Spectral Clustering: Uses eigenvalues of the similarity matrix to reduce dimensionality before clustering.
         4. Gaussian Mixture: Assumes data is generated from a mixture of Gaussian distributions.
         5. DBSCAN: Density-based clustering that can find arbitrarily shaped clusters.
@@ -142,7 +141,7 @@ def main():
         
         with col1:
             dataset = st.selectbox('Select a dataset', ['Blobs', 'Circles', 'Moons', 'Iris', 'S-Curve'])
-            method = st.selectbox('Select a clustering method', ['K-Means', 'K-Medoids', 'Spectral Clustering', 'Gaussian Mixture', 'DBSCAN', 'Agglomerative Clustering', 'OPTICS', 'Mean Shift', 'Affinity Propagation', 'Birch', 't-SNE'])
+            method = st.selectbox('Select a clustering method', ['K-Means', 'Mini-Batch K-Means', 'Spectral Clustering', 'Gaussian Mixture', 'DBSCAN', 'Agglomerative Clustering', 'OPTICS', 'Mean Shift', 'Affinity Propagation', 'Birch', 't-SNE'])
             n_clusters = st.slider('Number of clusters', min_value=2, max_value=10, value=3)
             
             if st.button('Run Clustering'):
@@ -172,15 +171,15 @@ def main():
                 "explanation": "DBSCAN (Density-Based Spatial Clustering of Applications with Noise) is known for its ability to find arbitrarily shaped clusters. It groups together points that are closely packed together, making it effective for clusters of various shapes."
             },
             {
-                "question": "What's the main difference between K-Means and K-Medoids?",
+                "question": "What's the main difference between K-Means and Mini-Batch K-Means?",
                 "options": [
-                    "K-Means uses Euclidean distance, K-Medoids uses Manhattan distance",
-                    "K-Means uses mean as cluster center, K-Medoids uses actual data points",
-                    "K-Means is faster, K-Medoids is more accurate",
-                    "K-Means works with continuous data, K-Medoids with categorical data"
+                    "K-Means uses Euclidean distance, Mini-Batch K-Means uses Manhattan distance",
+                    "K-Means processes all data points, Mini-Batch K-Means uses subsets of data",
+                    "K-Means is more accurate, Mini-Batch K-Means is faster",
+                    "K-Means works with continuous data, Mini-Batch K-Means with categorical data"
                 ],
                 "correct": 1,
-                "explanation": "The main difference is that K-Means uses the mean of points in a cluster as the cluster center, while K-Medoids uses actual data points as cluster centers. This makes K-Medoids more robust to outliers but potentially slower."
+                "explanation": "The main difference is that K-Means processes all data points in each iteration, while Mini-Batch K-Means uses small random batches of data in each iteration. This makes Mini-Batch K-Means faster but potentially slightly less accurate than standard K-Means."
             },
             {
                 "question": "What does t-SNE stand for?",
