@@ -96,19 +96,27 @@ def load_and_process_data():
     features = ['age', 'NumberOffriends', 'basketball', 'football', 'soccer', 'softball', 'volleyball', 'swimming', 'cheerleading', 'baseball', 'tennis', 'sports', 'cute', 'sex', 'sexy', 'hot', 'kissed', 'dance', 'band', 'marching', 'music', 'rock', 'god', 'church', 'jesus', 'bible', 'hair', 'dress', 'blonde', 'mall', 'shopping', 'clothes', 'hollister', 'abercrombie', 'die', 'death', 'drunk', 'drugs']
     X = marketing_data[features]
     
-    # Impute missing values
-    imputer = SimpleImputer(strategy='mean')
-    X_imputed = imputer.fit_transform(X)
+    # Handle 'age' column separately
+    X['age'] = pd.to_datetime(X['age'], format='%d. %b', errors='coerce').dt.month
     
-    # Standardize the features
+    # Identify numeric columns
+    numeric_features = X.select_dtypes(include=[np.number]).columns.tolist()
+    
+    # Impute missing values for numeric columns
+    imputer = SimpleImputer(strategy='mean')
+    X_imputed = X.copy()
+    X_imputed[numeric_features] = imputer.fit_transform(X[numeric_features])
+    
+    # Standardize the numeric features
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X_imputed)
+    X_scaled = X_imputed.copy()
+    X_scaled[numeric_features] = scaler.fit_transform(X_imputed[numeric_features])
     
     # Apply PCA for visualization
     pca = PCA(n_components=3)
-    X_3d = pca.fit_transform(X_scaled)
+    X_3d = pca.fit_transform(X_scaled[numeric_features])
     
-    return X_3d, features, marketing_data
+    return X_3d, numeric_features, marketing_data
 
 def cluster_data(X, algorithm, n_clusters=None, eps=None, min_samples=None):
     if algorithm == "K-Means":
