@@ -82,7 +82,7 @@ def main():
 
 def load_and_process_data():
     # Load the credit card dataset
-    credit_card_data = pd.read_csv('credit_card_dataset1.csv')
+    credit_card_data = pd.read_csv('credit_card_dataset.csv')
     
     # Select features for clustering
     features = ['BALANCE', 'PURCHASES', 'CASH_ADVANCE', 'CREDIT_LIMIT', 'PAYMENTS', 'MINIMUM_PAYMENTS']
