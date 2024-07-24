@@ -94,7 +94,7 @@ def load_and_process_data():
     
     # Select features for clustering
     features = ['age', 'NumberOffriends', 'basketball', 'football', 'soccer', 'softball', 'volleyball', 'swimming', 'cheerleading', 'baseball', 'tennis', 'sports', 'cute', 'sex', 'sexy', 'hot', 'kissed', 'dance', 'band', 'marching', 'music', 'rock', 'god', 'church', 'jesus', 'bible', 'hair', 'dress', 'blonde', 'mall', 'shopping', 'clothes', 'hollister', 'abercrombie', 'die', 'death', 'drunk', 'drugs']
-    X = marketing_data[features]
+    X = marketing_data[features].copy()
     
     # Handle 'age' column separately
     X['age'] = pd.to_datetime(X['age'], format='%d. %b', errors='coerce').dt.month
@@ -240,11 +240,22 @@ def cluster_insights(marketing_data, labels, feature_names):
         with col2:
             st.write("Cluster Characteristics:")
             for feature in feature_names:
-                mean_value = cluster_data[feature].mean()
-                overall_mean = df[feature].mean()
-                difference = ((mean_value - overall_mean) / overall_mean) * 100
-                emoji = "🔼" if difference > 0 else "🔽"
-                st.write(f"{feature}: {emoji} {abs(difference):.1f}% {'above' if difference > 0 else 'below'} average")
+                try:
+                    # Try to convert the feature to numeric
+                    feature_data = pd.to_numeric(df[feature], errors='coerce')
+                    cluster_feature_data = pd.to_numeric(cluster_data[feature], errors='coerce')
+                    
+                    # Calculate means only if the feature is numeric
+                    if not feature_data.isna().all():
+                        mean_value = cluster_feature_data.mean()
+                        overall_mean = feature_data.mean()
+                        difference = ((mean_value - overall_mean) / overall_mean) * 100
+                        emoji = "🔼" if difference > 0 else "🔽"
+                        st.write(f"{feature}: {emoji} {abs(difference):.1f}% {'above' if difference > 0 else 'below'} average")
+                    else:
+                        st.write(f"{feature}: Non-numeric data")
+                except Exception as e:
+                    st.write(f"{feature}: Unable to process - {str(e)}")
     
     st.subheader("Conclusions")
     st.write("""
