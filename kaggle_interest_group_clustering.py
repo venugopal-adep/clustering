@@ -44,7 +44,7 @@ st.markdown("""
 
 @st.cache_data
 def load_and_process_data():
-    interest_data = pd.read_csv('kaggle_Interests_group1.csv')
+    interest_data = pd.read_csv('kaggle_Interests_group.csv')
     features = [col for col in interest_data.columns if col.startswith('interest')]
     X = interest_data[features]
     
