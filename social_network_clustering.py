@@ -90,7 +90,7 @@ def main():
 
 def load_and_process_data():
     # Load the Marketing dataset
-    marketing_data = pd.read_csv('Clustering_Marketing1.csv')
+    marketing_data = pd.read_csv('Clustering_Marketing.csv')
     
     # Select features for clustering
     features = ['age', 'NumberOffriends', 'basketball', 'football', 'soccer', 'softball', 'volleyball', 'swimming', 'cheerleading', 'baseball', 'tennis', 'sports', 'cute', 'sex', 'sexy', 'hot', 'kissed', 'dance', 'band', 'marching', 'music', 'rock', 'god', 'church', 'jesus', 'bible', 'hair', 'dress', 'blonde', 'mall', 'shopping', 'clothes', 'hollister', 'abercrombie', 'die', 'death', 'drunk', 'drugs']
