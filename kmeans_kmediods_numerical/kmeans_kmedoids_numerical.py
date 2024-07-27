@@ -57,7 +57,7 @@ def kmeans_clustering(k, initial_centroids):
     iteration = 0
     converged = False
 
-    while not converged:
+    while not converged and iteration < 10:
         iteration += 1
         step_details = {
             "iteration": iteration,
@@ -81,10 +81,10 @@ def kmeans_clustering(k, initial_centroids):
         step_details["new_centroids"] = new_centroids
 
         # Check for convergence
-        if np.all(new_centroids == centroids):
+        if np.array_equal(new_centroids, centroids):
             converged = True
         else:
-            centroids = new_centroids
+            centroids = new_centroids.copy()
 
         steps.append(step_details)
 
@@ -96,7 +96,7 @@ def kmedoids_clustering(k, initial_medoids):
     iteration = 0
     converged = False
 
-    while not converged:
+    while not converged and iteration < 10:
         iteration += 1
         step_details = {
             "iteration": iteration,
@@ -130,10 +130,10 @@ def kmedoids_clustering(k, initial_medoids):
         step_details["new_medoids"] = np.array(new_medoids)
 
         # Check for convergence
-        if np.all(new_medoids == medoids):
+        if np.array_equal(new_medoids, medoids):
             converged = True
         else:
-            medoids = new_medoids
+            medoids = new_medoids.copy()
 
         steps.append(step_details)
 
@@ -170,13 +170,16 @@ def main():
         st.markdown(f"<h2 class='sub-header'>{algorithm} Clustering Steps</h2>", unsafe_allow_html=True)
         for step in steps:
             with st.expander(f"Step {step['iteration']}"):
+                centers = step['centroids'] if algorithm == "K-means" else step['medoids']
+                new_centers = step['new_centroids'] if algorithm == "K-means" else step['new_medoids']
+                
                 st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
-                st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {step['centroids' if algorithm == 'K-means' else 'medoids'].tolist()}")
+                st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {centers.tolist()}")
 
                 st.write("### 2. Measure the distance")
                 for i, point in enumerate(data_points):
                     st.write(f"Point {point}:")
-                    for j, center in enumerate(step['centroids' if algorithm == 'K-means' else 'medoids']):
+                    for j, center in enumerate(centers):
                         st.write(f"  Distance to {'Centroid' if algorithm == 'K-means' else 'Medoid'} {j+1}: {step['distances'][i][j]:.2f}")
 
                 st.write("### 3. Grouping based on minimum distance")
@@ -184,14 +187,14 @@ def main():
                     st.write(f"Cluster {cluster+1}: {points}")
 
                 st.write(f"### 4. Reposition of {'centroids' if algorithm == 'K-means' else 'medoids'}")
-                st.write(f"New {'centroids' if algorithm == 'K-means' else 'medoids'}: {step['new_centroids' if algorithm == 'K-means' else 'new_medoids'].tolist()}")
+                st.write(f"New {'centroids' if algorithm == 'K-means' else 'medoids'}: {new_centers.tolist()}")
 
                 # Plot
                 cluster_assignments = np.argmin(step['distances'], axis=1)
-                fig = plot_clusters(data_points, step['centroids' if algorithm == 'K-means' else 'medoids'], cluster_assignments)
+                fig = plot_clusters(data_points, centers, cluster_assignments)
                 st.plotly_chart(fig, use_container_width=True)
 
-                if np.all(step['new_centroids' if algorithm == 'K-means' else 'new_medoids'] == step['centroids' if algorithm == 'K-means' else 'medoids']):
+                if np.array_equal(new_centers, centers):
                     st.success("Convergence reached! The algorithm has converged to stable centers.")
                 else:
                     st.info(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'} have been updated. Moving to the next iteration.")
