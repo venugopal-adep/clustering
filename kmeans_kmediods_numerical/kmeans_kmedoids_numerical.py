@@ -1,12 +1,11 @@
 import streamlit as st
-import plotly.graph_objects as go
 import numpy as np
-from sklearn.metrics import pairwise_distances
+import plotly.graph_objects as go
 
 # Set page config
-st.set_page_config(layout="wide", page_title="Clustering Explorer", page_icon="🔍")
+st.set_page_config(layout="wide", page_title="K-means Clustering Explorer", page_icon="🔍")
 
-# Custom CSS (same as before)
+# Custom CSS
 st.markdown("""
 <style>
     .main-header {
@@ -45,206 +44,103 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Data points and clustering functions (same as before)
+# Data points
 data_points = np.array([2, 3, 4, 10, 11, 12, 20, 25, 30])
 
-def calculate_new_means(data_points, means):
-    clusters = {i: [] for i in range(len(means))}
-    for point in data_points:
-        closest_mean_index = np.argmin(np.abs(means - point))
-        clusters[closest_mean_index].append(point)
-    new_means = []
-    for cluster in clusters.values():
-        new_means.append(np.mean(cluster) if cluster else 0)
-    return np.array(new_means), clusters
+def euclidean_distance(a, b):
+    return np.abs(a - b)
 
-def calculate_new_medoids(data_points, medoids):
-    clusters = {i: [] for i in range(len(medoids))}
-    for point in data_points:
-        closest_medoid_index = np.argmin(np.abs(medoids - point))
-        clusters[closest_medoid_index].append(point)
-    new_medoids = []
-    for cluster in clusters.values():
-        if cluster:
-            distances = pairwise_distances(np.array(cluster).reshape(-1, 1))
-            new_medoid = cluster[np.argmin(np.sum(distances, axis=1))]
-            new_medoids.append(new_medoid)
+def kmeans_clustering(k, initial_centroids):
+    centroids = initial_centroids.copy()
+    steps = []
+    iteration = 0
+    converged = False
+
+    while not converged:
+        iteration += 1
+        step_details = {
+            "iteration": iteration,
+            "centroids": centroids.copy(),
+            "clusters": {},
+            "distances": {},
+            "new_centroids": None,
+        }
+
+        # Measure the distance
+        distances = np.array([[euclidean_distance(point, centroid) for centroid in centroids] for point in data_points])
+        step_details["distances"] = distances
+
+        # Grouping based on minimum distance
+        cluster_assignments = np.argmin(distances, axis=1)
+        for i in range(k):
+            step_details["clusters"][i] = data_points[cluster_assignments == i].tolist()
+
+        # Reposition of centroids
+        new_centroids = np.array([np.mean(step_details["clusters"][i]) if step_details["clusters"][i] else centroids[i] for i in range(k)])
+        step_details["new_centroids"] = new_centroids
+
+        # Check for convergence
+        if np.all(new_centroids == centroids):
+            converged = True
         else:
-            new_medoids.append(0)
-    return np.array(new_medoids), clusters
+            centroids = new_centroids
 
-def kmeans_clustering(m1, m2):
-    initial_means = np.array([m1, m2])
-    means = initial_means
-    iterations = 0
-    converged = False
-    steps = {}
-    while not converged and iterations < 10:
-        iterations += 1
-        new_means, clusters = calculate_new_means(data_points, means)
-        steps[iterations] = {'means': means, 'clusters': clusters}
-        converged = np.all(new_means == means)
-        means = new_means
+        steps.append(step_details)
+
     return steps
 
-def kmedoids_clustering(m1, m2):
-    initial_medoids = np.array([m1, m2])
-    medoids = initial_medoids
-    iterations = 0
-    converged = False
-    steps = {}
-    while not converged and iterations < 10:
-        iterations += 1
-        new_medoids, clusters = calculate_new_medoids(data_points, medoids)
-        steps[iterations] = {'medoids': medoids, 'clusters': clusters}
-        converged = np.all(new_medoids == medoids)
-        medoids = new_medoids
-    return steps
-
-def plot_clusters(clusters, centroids):
+def plot_clusters(data_points, centroids, cluster_assignments):
     fig = go.Figure()
-    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52']
-    for i, points in clusters.items():
-        fig.add_trace(go.Scatter(x=points, y=[0] * len(points), mode='markers', marker=dict(color=colors[i]), name=f'Cluster {i+1}'))
+    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A']
+    
     for i, centroid in enumerate(centroids):
-        fig.add_trace(go.Scatter(x=[centroid], y=[0], mode='markers', marker=dict(color=colors[i], size=10, symbol='star'), name=f'Centroid {i+1}'))
-    fig.update_layout(title='Clustering', xaxis_title='Data Points', yaxis_title='', showlegend=True)
+        cluster_points = data_points[cluster_assignments == i]
+        fig.add_trace(go.Scatter(x=cluster_points, y=[0] * len(cluster_points), mode='markers', 
+                                 marker=dict(color=colors[i], size=10), name=f'Cluster {i+1}'))
+        fig.add_trace(go.Scatter(x=[centroid], y=[0], mode='markers', 
+                                 marker=dict(color=colors[i], size=15, symbol='star'), name=f'Centroid {i+1}'))
+
+    fig.update_layout(title='K-means Clustering', xaxis_title='Data Points', yaxis_title='', showlegend=True)
     return fig
 
-# Main app
 def main():
-    st.markdown("<h1 class='main-header'>🔍 K-Means vs K-Medoids Numerical</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='text-content'>Developed by: Venugopal Adep</p>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>🔍 K-means Clustering Explorer</h1>", unsafe_allow_html=True)
 
-    # Create tabs
-    tab1, tab2, tab3 = st.tabs(["📚 Learn", "🧮 Explore", "🧠 Quiz"])
+    st.markdown("<h2 class='sub-header'>Choose Parameters</h2>", unsafe_allow_html=True)
+    k = st.number_input("Number of clusters (K)", min_value=2, max_value=5, value=2)
+    initial_centroids = np.array([st.number_input(f"Initial Centroid {i+1}", value=data_points[i*len(data_points)//k]) for i in range(k)])
 
-    with tab1:
-        st.markdown("<h2 class='sub-header'>Understanding K-Means and K-Medoids</h2>", unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div class='highlight'>
-        <h3>K-Means Clustering</h3>
-        <p class='text-content'>
-        K-Means is like organizing a classroom. Imagine you have a bunch of students (data points) and you want to group them into K teams:
-        
-        1. You start by randomly picking K team captains (initial centroids).
-        2. Each student joins the team of the captain closest to them.
-        3. The captain's position is moved to the average position of their team.
-        4. Students may switch teams based on which captain is now closest.
-        5. This continues until no one wants to switch teams anymore.
-        
-        Example: Grouping customers by age and income for targeted marketing.
-        </p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div class='highlight'>
-        <h3>K-Medoids Clustering</h3>
-        <p class='text-content'>
-        K-Medoids is similar to K-Means, but with a twist. Using the classroom analogy:
-        
-        1. Again, you start by randomly picking K team captains.
-        2. Students join the team of the closest captain.
-        3. Instead of moving the captain to the average position, you choose a new captain who's most centrally located within the team.
-        4. Students may switch teams based on who the new captains are.
-        5. This continues until the captains stop changing.
-        
-        Example: Grouping cities for regional offices, where the office must be in one of the existing cities.
-        </p>
-        </div>
-        """, unsafe_allow_html=True)
+    if st.button("Run K-means Clustering"):
+        steps = kmeans_clustering(k, initial_centroids)
 
-    with tab2:
-        st.markdown("<h2 class='sub-header'>Explore Clustering Algorithms</h2>", unsafe_allow_html=True)
-        
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            algorithm = st.selectbox('Select Algorithm', ['K-Means', 'K-Medoids'])
-            m1 = st.number_input('Centroid/Medoid 1', value=5)
-            m2 = st.number_input('Centroid/Medoid 2', value=15)
-            run_clustering = st.button('Run Clustering')
+        st.markdown("<h2 class='sub-header'>K-means Clustering Steps</h2>", unsafe_allow_html=True)
+        for step in steps:
+            with st.expander(f"Step {step['iteration']}"):
+                st.write("### 1. Current Centroids")
+                st.write(f"Centroids: {step['centroids'].tolist()}")
 
-            if run_clustering:
-                if algorithm == 'K-Means':
-                    steps = kmeans_clustering(m1, m2)
-                else:
-                    steps = kmedoids_clustering(m1, m2)
-                
-                st.session_state.steps = steps
-                st.session_state.algorithm = algorithm
-            
-        if 'steps' in st.session_state:
-            step = st.slider("Step", 1, len(st.session_state.steps), 1)
-            
-            details = st.session_state.steps[step]
-            centroids = details['means'] if st.session_state.algorithm == 'K-Means' else details['medoids']
-            clusters = details['clusters']
-            
-            st.markdown("<div class='highlight'>", unsafe_allow_html=True)
-            st.markdown(f"**Step {step}:**")
-            st.markdown(f"Centroids/Medoids: {centroids.tolist()}")
-            for cluster_idx, points in clusters.items():
-                st.markdown(f"Cluster {cluster_idx + 1}: {[int(point) for point in points]}")
-            st.markdown("</div>", unsafe_allow_html=True)
-        
-        with col2:
-            if 'steps' in st.session_state:
-                fig = plot_clusters(clusters, centroids)
+                st.write("### 2. Measure the distance")
+                for i, point in enumerate(data_points):
+                    st.write(f"Point {point}:")
+                    for j, centroid in enumerate(step['centroids']):
+                        st.write(f"  Distance to Centroid {j+1}: {step['distances'][i][j]:.2f}")
+
+                st.write("### 3. Grouping based on minimum distance")
+                for cluster, points in step['clusters'].items():
+                    st.write(f"Cluster {cluster+1}: {points}")
+
+                st.write("### 4. Reposition of centroids")
+                st.write(f"New centroids: {step['new_centroids'].tolist()}")
+
+                # Plot
+                cluster_assignments = np.argmin(step['distances'], axis=1)
+                fig = plot_clusters(data_points, step['centroids'], cluster_assignments)
                 st.plotly_chart(fig, use_container_width=True)
 
-    with tab3:
-        st.markdown("<h2 class='sub-header'>Test Your Knowledge!</h2>", unsafe_allow_html=True)
-        
-        questions = [
-            {
-                "question": "What's the main difference between K-Means and K-Medoids?",
-                "options": [
-                    "K-Means uses the mean as the center, while K-Medoids uses an actual data point",
-                    "K-Means is faster, while K-Medoids is more accurate",
-                    "K-Means works with categorical data, while K-Medoids doesn't",
-                    "There's no difference, they're the same algorithm"
-                ],
-                "correct": 0,
-                "explanation": "K-Means uses the average (mean) of points in a cluster as its center, which might not be an actual data point. It's like choosing the 'center of gravity' of a group. K-Medoids, on the other hand, always uses an actual data point as the center, like choosing a 'team captain' from the group to represent it."
-            },
-            {
-                "question": "Why might K-Medoids be preferred over K-Means in some situations?",
-                "options": [
-                    "K-Medoids is always faster",
-                    "K-Medoids is less sensitive to outliers",
-                    "K-Medoids can only work with 2D data",
-                    "K-Medoids always produces better clusters"
-                ],
-                "correct": 1,
-                "explanation": "K-Medoids is often preferred when dealing with outliers because it uses actual data points as cluster centers. Imagine you're choosing a meeting point for a group of friends. If one friend lives very far away (an outlier), K-Means might suggest meeting in the middle of nowhere, while K-Medoids would suggest meeting at someone's actual house, which is usually more practical."
-            },
-            {
-                "question": "In K-Means clustering, how is the centroid of a cluster determined?",
-                "options": [
-                    "It's always the first point assigned to the cluster",
-                    "It's calculated as the average of all points in the cluster",
-                    "It's randomly selected from the cluster points",
-                    "It's the point furthest from the cluster center"
-                ],
-                "correct": 1,
-                "explanation": "In K-Means, the centroid is calculated as the average (mean) of all points in the cluster. Think of it like finding the balance point of a mobile made from all the data points in the cluster. This average point represents the cluster's center, even if it's not an actual data point itself."
-            }
-        ]
-
-        for i, q in enumerate(questions):
-            st.markdown(f"<p class='text-content'><strong>Question {i+1}:</strong> {q['question']}</p>", unsafe_allow_html=True)
-            user_answer = st.radio("Select your answer:", q['options'], key=f"q{i}")
-            
-            if st.button("Check Answer", key=f"check{i}"):
-                if q['options'].index(user_answer) == q['correct']:
-                    st.success("Correct! 🎉")
+                if np.all(step['new_centroids'] == step['centroids']):
+                    st.success("Convergence reached! The algorithm has converged to stable centroids.")
                 else:
-                    st.error("Incorrect. Try again! 🤔")
-                st.info(q['explanation'])
-            st.markdown("---")
+                    st.info("Centroids have been updated. Moving to the next iteration.")
 
 if __name__ == '__main__':
     main()
