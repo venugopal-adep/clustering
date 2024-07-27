@@ -133,7 +133,7 @@ def kmedoids_clustering(k, initial_medoids):
         if np.array_equal(new_medoids, medoids):
             converged = True
         else:
-            medoids = new_medoids.copy()
+            medoids = np.array(new_medoids)
 
         steps.append(step_details)
 
@@ -174,7 +174,7 @@ def main():
                 new_centers = step['new_centroids'] if algorithm == "K-means" else step['new_medoids']
                 
                 st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
-                st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {centers.tolist()}")
+                st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {centers.tolist() if isinstance(centers, np.ndarray) else centers}")
 
                 st.write("### 2. Measure the distance")
                 for i, point in enumerate(data_points):
@@ -187,7 +187,7 @@ def main():
                     st.write(f"Cluster {cluster+1}: {points}")
 
                 st.write(f"### 4. Reposition of {'centroids' if algorithm == 'K-means' else 'medoids'}")
-                st.write(f"New {'centroids' if algorithm == 'K-means' else 'medoids'}: {new_centers.tolist()}")
+                st.write(f"New {'centroids' if algorithm == 'K-means' else 'medoids'}: {new_centers.tolist() if isinstance(new_centers, np.ndarray) else new_centers}")
 
                 # Plot
                 cluster_assignments = np.argmin(step['distances'], axis=1)
