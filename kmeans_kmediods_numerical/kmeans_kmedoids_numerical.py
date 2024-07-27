@@ -176,19 +176,19 @@ def main():
                 st.session_state.steps = steps
                 st.session_state.algorithm = algorithm
             
-            if 'steps' in st.session_state:
-                step = st.slider("Step", 1, len(st.session_state.steps), 1)
-                
-                details = st.session_state.steps[step]
-                centroids = details['means'] if st.session_state.algorithm == 'K-Means' else details['medoids']
-                clusters = details['clusters']
-                
-                st.markdown("<div class='highlight'>", unsafe_allow_html=True)
-                st.markdown(f"**Step {step}:**")
-                st.markdown(f"Centroids/Medoids: {centroids}")
-                for cluster_idx, points in clusters.items():
-                    st.markdown(f"Cluster {cluster_idx + 1}: {points}")
-                st.markdown("</div>", unsafe_allow_html=True)
+        if 'steps' in st.session_state:
+            step = st.slider("Step", 1, len(st.session_state.steps), 1)
+            
+            details = st.session_state.steps[step]
+            centroids = details['means'] if st.session_state.algorithm == 'K-Means' else details['medoids']
+            clusters = details['clusters']
+            
+            st.markdown("<div class='highlight'>", unsafe_allow_html=True)
+            st.markdown(f"**Step {step}:**")
+            st.markdown(f"Centroids/Medoids: {centroids.tolist()}")
+            for cluster_idx, points in clusters.items():
+                st.markdown(f"Cluster {cluster_idx + 1}: {[int(point) for point in points]}")
+            st.markdown("</div>", unsafe_allow_html=True)
         
         with col2:
             if 'steps' in st.session_state:
