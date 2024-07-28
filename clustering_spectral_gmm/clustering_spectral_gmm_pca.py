@@ -71,7 +71,7 @@ def plot_clusters(data, labels):
 
 # Main app
 def main():
-    st.markdown("<h1 class='main-header'>🔬 Advanced Clustering Explorer: Spectral Clustering and Gaussian Mixture Models</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>🔬 Spectral Clustering and Gaussian Mixture Models</h1>", unsafe_allow_html=True)
     st.markdown("<p class='text-content'>Explore advanced clustering algorithms on the Iris dataset</p>", unsafe_allow_html=True)
     st.markdown("<p class='text-content'><strong>Developed by: Venugopal Adep</strong></p>", unsafe_allow_html=True)
 
