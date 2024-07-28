@@ -16,6 +16,43 @@ COLORS = {
     'background': '#F8B195'
 }
 
+# Quiz questions and answers
+QUIZ_DATA = [
+    {
+        "question": "What is the main purpose of clustering in data analysis?",
+        "options": [
+            "A) To predict future outcomes",
+            "B) To group similar data points together",
+            "C) To reduce the dimensionality of data",
+            "D) To visualize data in 3D"
+        ],
+        "answer": "B",
+        "explanation": "Clustering is used to group similar data points together. For example, in a retail business, clustering can be used to group customers with similar purchasing behaviors, allowing for more targeted marketing strategies."
+    },
+    {
+        "question": "What does PCA stand for in the context of data analysis?",
+        "options": [
+            "A) Predictive Cluster Analysis",
+            "B) Principal Component Analysis",
+            "C) Programmatic Correlation Assessment",
+            "D) Pattern Classification Algorithm"
+        ],
+        "answer": "B",
+        "explanation": "PCA stands for Principal Component Analysis. It's a technique used to reduce the dimensionality of data while preserving as much information as possible. For instance, if you have a dataset with 100 features describing cars, PCA might help you reduce it to 10 principal components that capture the most important aspects of the data."
+    },
+    {
+        "question": "Which of the following is NOT a common clustering algorithm?",
+        "options": [
+            "A) K-Means",
+            "B) DBSCAN",
+            "C) Random Forest",
+            "D) Gaussian Mixture Model"
+        ],
+        "answer": "C",
+        "explanation": "Random Forest is not a clustering algorithm; it's a machine learning algorithm used for classification and regression. The other options (K-Means, DBSCAN, and Gaussian Mixture Model) are all clustering algorithms. For example, K-Means might be used to group customers into segments based on their purchasing behavior, while Random Forest could be used to predict whether a customer will make a purchase or not."
+    }
+]
+
 def main():
     st.set_page_config(page_title="Clustering and PCA Visualization", page_icon="📊", layout="wide")
     
@@ -38,7 +75,7 @@ def main():
         labels = None
 
         # Tabs
-        tab1, tab2, tab3 = st.tabs(["📊 Dataset", "🧩 Clustering", "🔬 PCA"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📊 Dataset", "🧩 Clustering", "🔬 PCA", "❓ Quiz"])
 
         with tab1:
             if show_data:
@@ -141,6 +178,20 @@ def main():
                         title='Explained Variance by Components'
                     )
                     st.plotly_chart(fig_explained_variance, use_container_width=True)
+
+        with tab4:
+            st.subheader("📝 Quiz")
+            st.write("Test your knowledge about clustering and PCA!")
+
+            for i, quiz_item in enumerate(QUIZ_DATA, 1):
+                st.write(f"**Question {i}:** {quiz_item['question']}")
+                for option in quiz_item['options']:
+                    st.write(option)
+                
+                if st.button(f"Show Answer for Question {i}"):
+                    st.success(f"The correct answer is: {quiz_item['answer']}")
+                    st.info(f"Explanation: {quiz_item['explanation']}")
+                st.write("---")
 
     else:
         st.info('Waiting for CSV file to be uploaded.')
