@@ -64,10 +64,7 @@ def main():
         st.header("📁 Data Upload")
         uploaded_file = st.file_uploader("Upload your input CSV file", type=["csv"])
         
-        if uploaded_file is not None:
-            show_data = st.checkbox('Show Dataset', False)
-            show_clustering = st.checkbox('Show Clustering', True)
-            show_pca = st.checkbox('Show PCA', True)
+
 
     if uploaded_file is not None:
         data = pd.read_csv(uploaded_file)
