@@ -20,7 +20,7 @@ def clustering(k, initial_centers, algorithm):
     centers = initial_centers.copy()
     steps = []
     for iteration in range(10):
-        distances = {int(point): [round(abs(point - center), 2) for center in centers] for point in data_points}
+        distances = {int(point): [round(float(abs(point - center)), 2) for center in centers] for point in data_points}
         cluster_assignments = np.argmin(np.array(list(distances.values())), axis=1)
         clusters = {i: [int(p) for p in data_points[cluster_assignments == i]] for i in range(k)}
         
@@ -38,10 +38,10 @@ def clustering(k, initial_centers, algorithm):
         
         steps.append({
             "iteration": iteration + 1,
-            "centers": [round(c, 2) for c in centers],
+            "centers": [round(float(c), 2) for c in centers],
             "clusters": clusters,
             "distances": distances,
-            "new_centers": [round(c, 2) for c in new_centers]
+            "new_centers": [round(float(c), 2) for c in new_centers]
         })
         
         if np.array_equal(new_centers, centers):
