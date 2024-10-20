@@ -62,7 +62,7 @@ def plot_clusters(data_points, centers, cluster_assignments):
 
 def main():
     st.markdown("<h1 class='main-header'>🔍 Clustering Explorer</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 class='sub-header'>Data Points</h2>", unsafe_allow_html=True)
+    
     
     
     st.markdown("<h2 class='sub-header'>Choose Parameters</h2>", unsafe_allow_html=True)
@@ -75,6 +75,7 @@ def main():
         st.markdown(f"<h2 class='sub-header'>{algorithm} Clustering Steps</h2>", unsafe_allow_html=True)
         for step in steps:
             with st.expander(f"Step {step['iteration']}"):
+                st.markdown("<h2 class='sub-header'>Data Points</h2>", unsafe_allow_html=True)
                 st.write(f"All data points: {data_points.tolist()}")
                 st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
                 st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {step['centers']}")
