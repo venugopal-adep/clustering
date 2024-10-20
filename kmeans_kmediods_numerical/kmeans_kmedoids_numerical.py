@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
-from sklearn.metrics import pairwise_distances
 
 st.set_page_config(layout="wide", page_title="Clustering Explorer", page_icon="🔍")
 
@@ -17,14 +16,12 @@ st.markdown("""
 
 data_points = np.array([2, 3, 4, 10, 11, 12, 20, 25, 30])
 
-def euclidean_distance(a, b): return np.abs(a - b)
-
 def clustering(k, initial_centers, algorithm):
     centers = initial_centers.copy()
     steps = []
     for iteration in range(10):
-        distances = np.array([[euclidean_distance(point, center) for center in centers] for point in data_points])
-        cluster_assignments = np.argmin(distances, axis=1)
+        distances = {point: np.abs(point - centers).tolist() for point in data_points}
+        cluster_assignments = np.argmin(np.array(list(distances.values())), axis=1)
         clusters = {i: data_points[cluster_assignments == i].tolist() for i in range(k)}
         
         if algorithm == "K-means":
@@ -34,14 +31,23 @@ def clustering(k, initial_centers, algorithm):
             for i in range(k):
                 cluster_points = np.array(clusters[i])
                 if len(cluster_points) > 0:
-                    cluster_distances = pairwise_distances(cluster_points.reshape(-1, 1))
+                    cluster_distances = np.abs(cluster_points[:, np.newaxis] - cluster_points)
                     new_centers.append(cluster_points[np.argmin(np.sum(cluster_distances, axis=1))])
                 else:
                     new_centers.append(centers[i])
         
-        steps.append({"iteration": iteration + 1, "centers": centers.copy(), "clusters": clusters, "distances": distances, "new_centers": new_centers})
-        if np.array_equal(new_centers, centers): break
+        steps.append({
+            "iteration": iteration + 1,
+            "centers": centers.copy(),
+            "clusters": clusters,
+            "distances": distances,
+            "new_centers": new_centers
+        })
+        
+        if np.array_equal(new_centers, centers):
+            break
         centers = np.array(new_centers)
+    
     return steps
 
 def plot_clusters(data_points, centers, cluster_assignments):
@@ -68,18 +74,21 @@ def main():
             with st.expander(f"Step {step['iteration']}"):
                 st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
                 st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {step['centers'].tolist()}")
+                
                 st.write("### 2. Measure the distance")
-                for i, point in enumerate(data_points):
-                    st.write(f"Point {point}:")
-                    for j, center in enumerate(step['centers']):
-                        st.write(f"  Distance to {'Centroid' if algorithm == 'K-means' else 'Medoid'} {j+1}: {step['distances'][i][j]:.2f}")
+                st.write(f"Distances: {step['distances']}")
+                
                 st.write("### 3. Grouping based on minimum distance")
                 for cluster, points in step['clusters'].items():
                     st.write(f"Cluster {cluster+1}: {points}")
+                
                 st.write(f"### 4. Reposition of {'centroids' if algorithm == 'K-means' else 'medoids'}")
                 st.write(f"New {'centroids' if algorithm == 'K-means' else 'medoids'}: {step['new_centers'].tolist()}")
-                fig = plot_clusters(data_points, step['centers'], np.argmin(step['distances'], axis=1))
+                
+                cluster_assignments = np.argmin(np.array(list(step['distances'].values())), axis=1)
+                fig = plot_clusters(data_points, step['centers'], cluster_assignments)
                 st.plotly_chart(fig, use_container_width=True)
+                
                 if np.array_equal(step['new_centers'], step['centers']):
                     st.success("Convergence reached! The algorithm has converged to stable centers.")
                 else:
