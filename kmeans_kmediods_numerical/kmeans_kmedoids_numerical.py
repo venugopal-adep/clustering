@@ -20,10 +20,9 @@ def clustering(k, initial_centers, algorithm):
     centers = initial_centers.copy()
     steps = []
     for iteration in range(10):
-        # Convert np.int64 to regular int for keys
-        distances = {int(point): np.abs(point - centers).tolist() for point in data_points}
+        distances = {int(point): [round(abs(point - center), 2) for center in centers] for point in data_points}
         cluster_assignments = np.argmin(np.array(list(distances.values())), axis=1)
-        clusters = {i: data_points[cluster_assignments == i].tolist() for i in range(k)}
+        clusters = {i: [int(p) for p in data_points[cluster_assignments == i]] for i in range(k)}
         
         if algorithm == "K-means":
             new_centers = np.array([np.mean(clusters[i]) if clusters[i] else centers[i] for i in range(k)])
@@ -39,10 +38,10 @@ def clustering(k, initial_centers, algorithm):
         
         steps.append({
             "iteration": iteration + 1,
-            "centers": centers.tolist(),  # Convert to list for cleaner output
+            "centers": [round(c, 2) for c in centers],
             "clusters": clusters,
             "distances": distances,
-            "new_centers": new_centers.tolist()  # Convert to list for cleaner output
+            "new_centers": [round(c, 2) for c in new_centers]
         })
         
         if np.array_equal(new_centers, centers):
@@ -66,36 +65,31 @@ def main():
     st.markdown("<h2 class='sub-header'>Choose Parameters</h2>", unsafe_allow_html=True)
     algorithm = st.selectbox("Select Algorithm", ["K-means", "K-medoids"])
     k = st.number_input("Number of clusters (K)", min_value=2, max_value=5, value=2)
-    initial_centers = np.array([st.number_input(f"Initial Center {i+1}", value=data_points[i*len(data_points)//k]) for i in range(k)])
+    initial_centers = np.array([st.number_input(f"Initial Center {i+1}", value=float(data_points[i*len(data_points)//k])) for i in range(k)])
 
     if st.button(f"Run {algorithm} Clustering"):
         steps = clustering(k, initial_centers, algorithm)
         st.markdown(f"<h2 class='sub-header'>{algorithm} Clustering Steps</h2>", unsafe_allow_html=True)
-        if st.button(f"Run {algorithm} Clustering"):
-            steps = clustering(k, initial_centers, algorithm)
-            st.markdown(f"<h2 class='sub-header'>{algorithm} Clustering Steps</h2>", unsafe_allow_html=True)
-            for step in steps:
-                with st.expander(f"Step {step['iteration']}"):
-                    st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
-                    st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {step['centers']}")
-                    
-                    st.write("### 2. Measure the distance")
-                    # Convert distances to a more readable format
-                    readable_distances = {int(k): [round(v, 2) for v in vals] for k, vals in step['distances'].items()}
-                    st.write(f"Distances: {readable_distances}")
+        for step in steps:
+            with st.expander(f"Step {step['iteration']}"):
+                st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
+                st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {step['centers']}")
+                
+                st.write("### 2. Measure the distance")
+                st.write(f"Distances: {step['distances']}")
                 
                 st.write("### 3. Grouping based on minimum distance")
                 for cluster, points in step['clusters'].items():
                     st.write(f"Cluster {cluster+1}: {points}")
                 
                 st.write(f"### 4. Reposition of {'centroids' if algorithm == 'K-means' else 'medoids'}")
-                st.write(f"New {'centroids' if algorithm == 'K-means' else 'medoids'}: {step['new_centers'].tolist()}")
+                st.write(f"New {'centroids' if algorithm == 'K-means' else 'medoids'}: {step['new_centers']}")
                 
                 cluster_assignments = np.argmin(np.array(list(step['distances'].values())), axis=1)
                 fig = plot_clusters(data_points, step['centers'], cluster_assignments)
                 st.plotly_chart(fig, use_container_width=True)
                 
-                if np.array_equal(step['new_centers'], step['centers']):
+                if step['centers'] == step['new_centers']:
                     st.success("Convergence reached! The algorithm has converged to stable centers.")
                 else:
                     st.info(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'} have been updated. Moving to the next iteration.")
