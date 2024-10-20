@@ -20,7 +20,8 @@ def clustering(k, initial_centers, algorithm):
     centers = initial_centers.copy()
     steps = []
     for iteration in range(10):
-        distances = {point: np.abs(point - centers).tolist() for point in data_points}
+        # Convert np.int64 to regular int for keys
+        distances = {int(point): np.abs(point - centers).tolist() for point in data_points}
         cluster_assignments = np.argmin(np.array(list(distances.values())), axis=1)
         clusters = {i: data_points[cluster_assignments == i].tolist() for i in range(k)}
         
@@ -38,10 +39,10 @@ def clustering(k, initial_centers, algorithm):
         
         steps.append({
             "iteration": iteration + 1,
-            "centers": centers.copy(),
+            "centers": centers.tolist(),  # Convert to list for cleaner output
             "clusters": clusters,
             "distances": distances,
-            "new_centers": new_centers
+            "new_centers": new_centers.tolist()  # Convert to list for cleaner output
         })
         
         if np.array_equal(new_centers, centers):
@@ -70,13 +71,18 @@ def main():
     if st.button(f"Run {algorithm} Clustering"):
         steps = clustering(k, initial_centers, algorithm)
         st.markdown(f"<h2 class='sub-header'>{algorithm} Clustering Steps</h2>", unsafe_allow_html=True)
-        for step in steps:
-            with st.expander(f"Step {step['iteration']}"):
-                st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
-                st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {step['centers'].tolist()}")
-                
-                st.write("### 2. Measure the distance")
-                st.write(f"Distances: {step['distances']}")
+        if st.button(f"Run {algorithm} Clustering"):
+            steps = clustering(k, initial_centers, algorithm)
+            st.markdown(f"<h2 class='sub-header'>{algorithm} Clustering Steps</h2>", unsafe_allow_html=True)
+            for step in steps:
+                with st.expander(f"Step {step['iteration']}"):
+                    st.write(f"### 1. Current {'Centroids' if algorithm == 'K-means' else 'Medoids'}")
+                    st.write(f"{'Centroids' if algorithm == 'K-means' else 'Medoids'}: {step['centers']}")
+                    
+                    st.write("### 2. Measure the distance")
+                    # Convert distances to a more readable format
+                    readable_distances = {int(k): [round(v, 2) for v in vals] for k, vals in step['distances'].items()}
+                    st.write(f"Distances: {readable_distances}")
                 
                 st.write("### 3. Grouping based on minimum distance")
                 for cluster, points in step['clusters'].items():
