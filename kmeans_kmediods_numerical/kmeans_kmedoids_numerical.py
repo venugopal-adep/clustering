@@ -62,6 +62,9 @@ def plot_clusters(data_points, centers, cluster_assignments):
 
 def main():
     st.markdown("<h1 class='main-header'>🔍 Clustering Explorer</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 class='sub-header'>Data Points</h2>", unsafe_allow_html=True)
+    st.write(f"All data points: {data_points.tolist()}")
+    
     st.markdown("<h2 class='sub-header'>Choose Parameters</h2>", unsafe_allow_html=True)
     algorithm = st.selectbox("Select Algorithm", ["K-means", "K-medoids"])
     k = st.number_input("Number of clusters (K)", min_value=2, max_value=5, value=2)
