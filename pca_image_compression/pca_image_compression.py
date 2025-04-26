@@ -100,9 +100,9 @@ def main():
             
             col1, col2 = st.columns(2)
             with col1:
-                st.image(img_array, caption=f'Original Image\n{original_components} components', use_column_width=True)
+                st.image(img_array, caption=f'Original Image\n{original_components} components', use_container_width=True)
             with col2:
-                st.image(img_reconstructed, caption=f'Reconstructed Image\n{processed_components} components', use_column_width=True)
+                st.image(img_reconstructed, caption=f'Reconstructed Image\n{processed_components} components', use_container_width=True)
             
             st.markdown(f"""
             <div class='highlight'>
